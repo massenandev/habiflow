@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Habiflow",
+    "slug": "habiflow",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "habiflow",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@habiflow/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "expo": "^54.0.35",
+    "expo-notifications": "^0.32.17",
+    "expo-print": "^15.0.8",
+    "expo-sharing": "^14.0.8",
+    "lucide-react-native": "^1.17.0",
+    "metro-runtime": "^0.84.4",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.17",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

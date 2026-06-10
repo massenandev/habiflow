@@ -1,0 +1,15 @@
+{
+  "name": "habiflow",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev:api": "pnpm --filter @habiflow/api dev",
+    "dev:mobile": "pnpm --filter @habiflow/mobile start",
+    "test": "pnpm --filter @habiflow/api test && pnpm --filter @habiflow/mobile test",
+    "test:api": "pnpm --filter @habiflow/api test",
+    "test:mobile": "pnpm --filter @habiflow/mobile test",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
+  }
+}

@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Habit {
+  id              String             @id @db.Uuid
+  deviceId        String             @map("device_id")
+  name            String
+  emoji           String
+  color           String
+  shape           String
+  goalType        String             @map("goal_type")
+  targetCount     Int                @map("target_count")
+  targetPeriod    String             @map("target_period")
+  reminderEnabled Boolean            @default(false) @map("reminder_enabled")
+  reminderTime    String?            @map("reminder_time")
+  reminderCount   Int                @default(0) @map("reminder_count")
+  reminderTimes   String[]           @default([]) @map("reminder_times")
+  status          String
+  createdAt       DateTime           @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime           @map("updated_at") @db.Timestamptz(6)
+  completions     HabitCompletion[]
+
+  @@index([deviceId, status])
+  @@map("habits")
+}
+
+model HabitCompletion {
+  id             String   @id @db.Uuid
+  habitId        String   @map("habit_id") @db.Uuid
+  deviceId       String   @map("device_id")
+  completionDate DateTime @map("completion_date") @db.Date
+  count          Int
+  createdAt      DateTime @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @map("updated_at") @db.Timestamptz(6)
+  habit          Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, completionDate])
+  @@index([habitId, completionDate])
+  @@map("habit_completions")
+}
