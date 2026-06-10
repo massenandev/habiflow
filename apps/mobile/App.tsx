@@ -3,7 +3,7 @@ import { Alert, SafeAreaView, useColorScheme } from "react-native";
 import { Habit, HabitFormValues, ScreenName } from "./src/domain/types";
 import { HabitApiClient } from "./src/infrastructure/api-client";
 import { getOrCreateDeviceId } from "./src/infrastructure/device-id";
-import { exportHabitPdf } from "./src/infrastructure/pdf-exporter";
+import { exportHabitsPdf } from "./src/infrastructure/pdf-exporter";
 import { scheduleHabitReminders } from "./src/infrastructure/notification-service";
 import { defaultSettings, loadSettings, saveSettings, UserSettings } from "./src/infrastructure/settings-store";
 import { DashboardScreen } from "./src/presentation/screens/DashboardScreen";
@@ -119,10 +119,10 @@ export default function App() {
     await refresh(deviceId, next.dashboardDays);
   }
 
-  async function exportPdf(habit: Habit) {
+  async function exportPdf(selectedHabits: Habit[]) {
     const today = new Date();
     try {
-      await exportHabitPdf(habit, today.getMonth() + 1, today.getFullYear());
+      await exportHabitsPdf(selectedHabits, today.getMonth() + 1, today.getFullYear());
     } catch (err) {
       Alert.alert("Could not export PDF", err instanceof Error ? err.message : "Try again.");
     }
@@ -144,10 +144,33 @@ export default function App() {
           onSettings={() => setScreen("settings")}
           onHistory={() => setScreen("history")}
           onExport={() => setScreen("export")}
+          onDaysChange={(dashboardDays) => {
+            void updateSettings({ ...settings, dashboardDays });
+          }}
           onToggle={toggleHabit}
           onEdit={(habit) => {
             setSelectedHabit(habit);
             setScreen("edit");
+          }}
+          onDelete={async (habit) => {
+            if (!deviceId) {
+              return;
+            }
+            Alert.alert("Delete habit", "This permanently removes the habit and its history.", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  try {
+                    await api.deleteHabit(habit.id, deviceId);
+                    await refresh();
+                  } catch (err) {
+                    Alert.alert("Could not delete habit", err instanceof Error ? err.message : "Try again.");
+                  }
+                }
+              }
+            ]);
           }}
         />
       ) : null}

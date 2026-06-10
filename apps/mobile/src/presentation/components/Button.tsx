@@ -7,13 +7,16 @@ interface Props {
   theme: AppTheme;
   onPress: () => void;
   variant?: "primary" | "secondary" | "danger";
+  disabled?: boolean;
 }
 
-export function Button({ label, theme, onPress, variant = "primary" }: Props) {
+export function Button({ label, theme, onPress, variant = "primary", disabled = false }: Props) {
   const backgroundColor = variant === "primary" ? theme.primary : variant === "danger" ? theme.danger : "transparent";
   const color = variant === "secondary" ? theme.text : "#FFFFFF";
+  const opacity = disabled ? 0.4 : 1;
+
   return (
-    <Pressable onPress={onPress} style={[styles.button, { backgroundColor, borderColor: theme.border }]}>
+    <Pressable onPress={!disabled ? onPress : undefined} disabled={disabled} style={[styles.button, { backgroundColor, borderColor: theme.border, opacity }]}> 
       <Text style={[styles.text, { color }]}>{label}</Text>
     </Pressable>
   );
