@@ -2,6 +2,10 @@ export function todayIso(now = new Date()): string {
   return now.toISOString().slice(0, 10);
 }
 
+export function isFutureIso(date: string, now = new Date()): boolean {
+  return date > todayIso(now);
+}
+
 export function addDays(date: string, days: number): string {
   const next = new Date(`${date}T00:00:00.000Z`);
   next.setUTCDate(next.getUTCDate() + days);

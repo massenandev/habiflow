@@ -11,9 +11,11 @@ interface Props {
   theme: AppTheme;
   onChange: (settings: UserSettings) => void;
   onBack: () => void;
+  onLogout?: () => void;
+  onDeleteAccount?: () => void;
 }
 
-export function SettingsScreen({ settings, backendOnline, theme, onChange, onBack }: Props) {
+export function SettingsScreen({ settings, backendOnline, theme, onChange, onBack, onLogout, onDeleteAccount }: Props) {
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.title, { color: theme.text }]}>Settings</Text>
@@ -32,6 +34,8 @@ export function SettingsScreen({ settings, backendOnline, theme, onChange, onBac
       <View style={[styles.status, { borderColor: theme.border, backgroundColor: theme.surface }]}>
         <Text style={{ color: theme.text }}>Backend: {backendOnline ? "online" : "offline"}</Text>
       </View>
+      {onLogout ? <Button label="Logout" theme={theme} variant="secondary" onPress={onLogout} /> : null}
+      {onDeleteAccount ? <Button label="Delete account" theme={theme} variant="danger" onPress={onDeleteAccount} /> : null}
       <Button label="Back" theme={theme} variant="secondary" onPress={onBack} />
     </ScrollView>
   );

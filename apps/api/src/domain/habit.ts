@@ -4,6 +4,7 @@ import { HabitGoal, HabitProps, ReminderSettings } from "./types";
 
 export interface CreateHabitInput {
   deviceId: string;
+  userId?: string | null;
   name: string;
   emoji?: string;
   color: string;
@@ -18,6 +19,7 @@ export class Habit {
     return new Habit({
       id: randomUUID(),
       deviceId: assertDeviceId(input.deviceId),
+      userId: input.userId ?? null,
       name: assertHabitName(input.name),
       emoji: assertEmoji(input.emoji),
       color: assertColor(input.color),
@@ -34,6 +36,7 @@ export class Habit {
     return new Habit({
       ...props,
       deviceId: assertDeviceId(props.deviceId),
+      userId: props.userId ?? null,
       name: assertHabitName(props.name),
       emoji: assertEmoji(props.emoji),
       color: assertColor(props.color),

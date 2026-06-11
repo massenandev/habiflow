@@ -33,15 +33,25 @@ describe("Habit domain", () => {
 describe("StreakService", () => {
   const service = new StreakService();
 
-  it("calculates daily current and best streaks", () => {
+  it("calculates daily consecutive streaks", () => {
     const completions = ["2026-06-08", "2026-06-09", "2026-06-10"].map((date) => completion(date, 1));
     expect(service.calculate(baseInput.goal, completions, "2026-06-10")).toEqual({ current: 3, best: 3 });
   });
 
-  it("calculates weekly streaks when a habit has completions in consecutive weeks", () => {
-    const goal = { streakGoal: "week" as const, completionsPerDay: 1 };
-    const completions = [completion("2026-06-01", 1), completion("2026-06-08", 1)];
-    expect(service.calculate(goal, completions, "2026-06-10")).toEqual({ current: 2, best: 2 });
+  it("keeps the current streak through yesterday when today is still empty", () => {
+    const completions = ["2026-06-08", "2026-06-09", "2026-06-10"].map((date) => completion(date, 1));
+    expect(service.calculate(baseInput.goal, completions, "2026-06-11")).toEqual({ current: 3, best: 3 });
+  });
+
+  it("breaks the current streak when there is a gap", () => {
+    const completions = ["2026-06-01", "2026-06-08", "2026-06-10"].map((date) => completion(date, 1));
+    expect(service.calculate(baseInput.goal, completions, "2026-06-10")).toEqual({ current: 1, best: 1 });
+  });
+
+  it("respects completions-per-day before adding a daily date to the total", () => {
+    const goal = { streakGoal: "daily" as const, completionsPerDay: 2 };
+    const completions = [completion("2026-06-08", 2), completion("2026-06-09", 1), completion("2026-06-10", 2)];
+    expect(service.calculate(goal, completions, "2026-06-10")).toEqual({ current: 1, best: 1 });
   });
 });
 

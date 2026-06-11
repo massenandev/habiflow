@@ -15,6 +15,8 @@ async function bootstrap() {
     .setTitle("Habiflow API")
     .setDescription("REST API for Habiflow habits, completions, streaks, and history.")
     .setVersion("0.1.0")
+    .addBearerAuth()
+    .addTag("auth")
     .addTag("health")
     .addTag("habits")
     .build();

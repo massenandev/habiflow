@@ -1,129 +1,83 @@
-import React, { useRef, useState } from "react";
-import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
-import { recentDays } from "../../application/date-range";
+import React from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { isoToday, recentDays } from "../../application/date-range";
 import { isCompletedForDate } from "../../application/habit-presenter";
 import { Habit } from "../../domain/types";
 import { AppTheme } from "../theme/theme";
+import { HABIT_DAY_GAP, HABIT_DAY_HIT_SIZE, HABIT_DAY_INDICATOR_SIZE, habitDayTrackWidth } from "./habit-day-layout";
 
 interface Props {
   habit: Habit;
   days: number;
   theme: AppTheme;
-  onToggle: (habit: Habit) => void;
+  onToggle: (habit: Habit, date: string) => void;
   onEdit: (habit: Habit) => void;
+  onArchive: (habit: Habit) => void;
   onDelete: (habit: Habit) => void;
 }
 
-export function HabitRow({ habit, days, theme, onToggle, onEdit, onDelete }: Props) {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const [open, setOpen] = useState(false);
+export function HabitRow({ habit, days, theme, onToggle, onEdit, onArchive, onDelete }: Props) {
   const dates = recentDays(days);
-  const today = dates[dates.length - 1];
-  const maxSwipe = 110;
-  const threshold = 60;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 6,
-      onPanResponderMove: (_, gestureState) => {
-        const nextX = Math.min(maxSwipe, Math.max(0, gestureState.dx + (open ? maxSwipe : 0)));
-        translateX.setValue(nextX);
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        const shouldOpen = gestureState.dx > threshold || (open && gestureState.dx > -10);
-        Animated.spring(translateX, {
-          toValue: shouldOpen ? maxSwipe : 0,
-          useNativeDriver: true,
-          bounciness: 0
-        }).start(() => setOpen(shouldOpen));
-      },
-      onPanResponderTerminate: () => {
-        Animated.spring(translateX, { toValue: open ? maxSwipe : 0, useNativeDriver: true, bounciness: 0 }).start();
-      }
-    })
-  ).current;
-
-  const closeSwipe = () => {
-    Animated.spring(translateX, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start(() => setOpen(false));
-  };
+  const today = isoToday();
+  const trackWidth = habitDayTrackWidth(days);
+  const showOptions = () =>
+    Alert.alert(habit.name, "Choose an action", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Edit", onPress: () => onEdit(habit) },
+      { text: "Archive", onPress: () => onArchive(habit) },
+      { text: "Delete", style: "destructive", onPress: () => onDelete(habit) }
+    ]);
 
   return (
-    <View style={styles.swipeContainer}>
-      <View style={[styles.deleteBackground, { backgroundColor: theme.danger }]}> 
-        <Pressable accessibilityLabel={`Delete ${habit.name}`} accessibilityRole="button" onPress={() => onDelete(habit)} style={styles.deleteAction}>
-          <Text style={styles.deleteText}>🗑️ Delete</Text>
-        </Pressable>
-      </View>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border, transform: [{ translateX }] }]}
-      >
-        <Pressable onPress={() => (open ? closeSwipe() : onEdit(habit))} style={styles.rowContent}>
-          <View style={styles.identity}>
-            <Text style={styles.emoji}>{habit.emoji || "✅"}</Text>
-            <View style={styles.nameBlock}>
-              <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>
-                {habit.name}
-              </Text>
-              <Text style={[styles.meta, { color: theme.muted }]}>🔥 {habit.streak.current} day streak</Text>
-            </View>
+    <View style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={styles.rowContent}>
+        <Pressable delayLongPress={220} onLongPress={showOptions} style={styles.identity}>
+          <Text style={styles.emoji}>{habit.emoji || "✅"}</Text>
+          <View style={styles.nameBlock}>
+            <Text style={[styles.name, { color: theme.text }]} numberOfLines={1}>
+              {habit.name}
+            </Text>
+            <Text style={[styles.meta, { color: theme.muted }]}>🔥 {habit.streak.current} day streak</Text>
           </View>
-          <View style={styles.days}>
-            {dates.map((date) => {
-              const completed = isCompletedForDate(habit, date);
-              const isToday = date === today;
-              return (
-                <Pressable
-                  key={date}
-                  onPress={(event) => {
-                    event.stopPropagation();
-                    if (isToday) {
-                      onToggle(habit);
-                    }
-                  }}
+        </Pressable>
+        <View pointerEvents="box-none" style={[styles.days, { width: trackWidth }]}>
+          {dates.map((date) => {
+            const completed = isCompletedForDate(habit, date);
+            const isToday = date === today;
+            const canToggle = date <= today;
+            return (
+              <Pressable
+                key={date}
+                pressRetentionOffset={0}
+                style={styles.dayPressable}
+                onPress={() => {
+                  if (canToggle) {
+                    onToggle(habit, date);
+                  }
+                }}
+              >
+                <View
                   style={[
                     styles.indicator,
                     {
                       borderRadius: 999,
                       borderColor: habit.color,
                       backgroundColor: completed ? habit.color : "transparent",
-                      opacity: isToday ? 1 : 0.72
+                      opacity: canToggle ? 1 : 0.45,
+                      transform: [{ scale: isToday ? 1.02 : 1 }]
                     }
                   ]}
                 />
-              );
-            })}
-          </View>
-        </Pressable>
-      </Animated.View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  swipeContainer: {
-    position: "relative"
-  },
-  deleteBackground: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 110,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8
-  },
-  deleteAction: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  deleteText: {
-    color: "#FFFFFF",
-    fontWeight: "700"
-  },
   row: {
     minHeight: 72,
     borderWidth: 1,
@@ -163,11 +117,20 @@ const styles = StyleSheet.create({
   },
   days: {
     flexDirection: "row",
-    gap: 7
+    gap: HABIT_DAY_GAP,
+    flexShrink: 0,
+    alignItems: "center"
+  },
+  dayPressable: {
+    width: HABIT_DAY_HIT_SIZE,
+    height: HABIT_DAY_HIT_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible"
   },
   indicator: {
-    width: 22,
-    height: 22,
+    width: HABIT_DAY_INDICATOR_SIZE,
+    height: HABIT_DAY_INDICATOR_SIZE,
     borderWidth: 2
   }
 });

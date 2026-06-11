@@ -17,6 +17,7 @@ export class PrismaHabitRepository implements HabitRepository {
         create: {
           id: item.id,
           deviceId: item.deviceId,
+          userId: item.userId ?? null,
           name: item.name,
           emoji: item.emoji,
           color: item.color,
@@ -33,6 +34,7 @@ export class PrismaHabitRepository implements HabitRepository {
           updatedAt: item.updatedAt
         },
         update: {
+          userId: item.userId ?? null,
           name: item.name,
           emoji: item.emoji,
           color: item.color,
@@ -59,11 +61,31 @@ export class PrismaHabitRepository implements HabitRepository {
   async listActiveByDevice(deviceId: string): Promise<Habit[]> {
     const rows = await this.safe(
       this.prisma.habit.findMany({
-        where: { deviceId, status: "active" },
+        where: { deviceId, userId: null, status: "active" },
         orderBy: { createdAt: "asc" }
       })
     );
     return rows.map((row) => this.toHabit(row));
+  }
+
+  async listActiveByUser(userId: string): Promise<Habit[]> {
+    const rows = await this.safe(
+      this.prisma.habit.findMany({
+        where: { userId, status: "active" },
+        orderBy: { createdAt: "asc" }
+      })
+    );
+    return rows.map((row) => this.toHabit(row));
+  }
+
+  async claimGuestHabits(deviceId: string, userId: string): Promise<number> {
+    const result = await this.safe(
+      this.prisma.habit.updateMany({
+        where: { deviceId, userId: null },
+        data: { userId, updatedAt: new Date() }
+      })
+    );
+    return result.count;
   }
 
   async deleteById(id: string): Promise<void> {
@@ -158,6 +180,7 @@ export class PrismaHabitRepository implements HabitRepository {
   private toHabit(row: {
     id: string;
     deviceId: string;
+    userId: string | null;
     name: string;
     emoji: string;
     color: string;
@@ -176,6 +199,7 @@ export class PrismaHabitRepository implements HabitRepository {
     const props: HabitProps = {
       id: row.id,
       deviceId: row.deviceId,
+      userId: row.userId,
       name: row.name,
       emoji: row.emoji,
       color: row.color,

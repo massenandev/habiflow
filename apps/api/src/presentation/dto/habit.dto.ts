@@ -101,3 +101,10 @@ export class DeviceDto {
   @IsNotEmpty()
   deviceId!: string;
 }
+
+export class ToggleHabitDto extends DeviceDto {
+  @ApiProperty({ example: "2026-06-10", description: "Completion date to toggle. Present and past dates are allowed." })
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  date!: string;
+}

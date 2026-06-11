@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { CalendarDays, FileText, Settings } from "lucide-react-native";
+import { BarChart3, CalendarDays, FileText, Settings } from "lucide-react-native";
 import { recentDays } from "../../application/date-range";
 import { Habit } from "../../domain/types";
 import { Button } from "../components/Button";
+import { HABIT_DATE_CELL_WIDTH, HABIT_DAY_GAP, habitDateTrackWidth } from "../components/habit-day-layout";
 import { HabitRow } from "../components/HabitRow";
 import { AppTheme } from "../theme/theme";
 
@@ -18,16 +19,19 @@ interface Props {
   onCreate: () => void;
   onSettings: () => void;
   onHistory: () => void;
+  onReport: () => void;
   onExport: () => void;
   onDaysChange: (days: number) => void;
-  onToggle: (habit: Habit) => void;
+  onToggle: (habit: Habit, date: string) => void;
   onEdit: (habit: Habit) => void;
+  onArchive: (habit: Habit) => void;
   onDelete: (habit: Habit) => void;
 }
 
-export function DashboardScreen({ habits, days, theme, loading, error, onCreate, onSettings, onHistory, onExport, onDaysChange, onToggle, onEdit, onDelete }: Props) {
+export function DashboardScreen({ habits, days, theme, loading, error, onCreate, onSettings, onHistory, onReport, onExport, onDaysChange, onToggle, onEdit, onArchive, onDelete }: Props) {
   const [rangeOpen, setRangeOpen] = useState(false);
   const dates = recentDays(days);
+  const trackWidth = habitDateTrackWidth(days);
 
   function chooseDays(nextDays: number) {
     setRangeOpen(false);
@@ -56,7 +60,7 @@ export function DashboardScreen({ habits, days, theme, loading, error, onCreate,
           >
             <Text style={[styles.rangeButtonText, { color: theme.text }]}>Last {days} day{days === 1 ? "" : "s"}</Text>
           </Pressable>
-          <View style={styles.dateHeader}>
+          <View style={[styles.dateHeader, { width: trackWidth }]}>
             {dates.map((date) => (
               <DateHeaderCell key={date} date={date} theme={theme} />
             ))}
@@ -73,13 +77,14 @@ export function DashboardScreen({ habits, days, theme, loading, error, onCreate,
         ) : null}
         <View style={styles.list}>
           {habits.map((habit) => (
-            <HabitRow key={habit.id} habit={habit} days={days} theme={theme} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
+            <HabitRow key={habit.id} habit={habit} days={days} theme={theme} onToggle={onToggle} onEdit={onEdit} onArchive={onArchive} onDelete={onDelete} />
           ))}
         </View>
         {!loading && habits.length === 0 ? <Text style={[styles.empty, { color: theme.muted }]}>Create your first habit with the + button.</Text> : null}
       </ScrollView>
       <View style={[styles.bottomMenu, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <MenuButton label="History" theme={theme} onPress={onHistory} icon={<CalendarDays size={23} color={theme.text} strokeWidth={2.2} />} />
+        <MenuButton label="Reports" theme={theme} onPress={onReport} icon={<BarChart3 size={23} color={theme.text} strokeWidth={2.2} />} />
         <MenuButton label="Export PDF" theme={theme} onPress={onExport} icon={<FileText size={23} color={theme.text} strokeWidth={2.2} />} />
         <MenuButton label="Settings" theme={theme} onPress={onSettings} icon={<Settings size={23} color={theme.text} strokeWidth={2.2} />} />
       </View>
@@ -150,10 +155,11 @@ const styles = StyleSheet.create({
   },
   dateHeader: {
     flexDirection: "row",
-    gap: 7
+    gap: HABIT_DAY_GAP,
+    flexShrink: 0
   },
   dateCell: {
-    width: 22,
+    width: HABIT_DATE_CELL_WIDTH,
     minHeight: 30,
     alignItems: "center",
     justifyContent: "center"

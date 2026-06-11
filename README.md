@@ -1,6 +1,6 @@
 # Habiflow
 
-Habiflow is a full-stack mobile habit tracker for iOS and Android. Users create personalized habits, mark them done or undone, view recent progress and streaks, review habit history, switch themes, schedule local reminders, and export printable habit trackers as PDFs.
+Habiflow is a full-stack mobile habit tracker for iOS and Android. Users create personalized habits, mark them done or undone, view recent progress and streaks, review habit history, switch themes, schedule local reminders, and export printable habit trackers as PDFs. The app supports guest mode plus account onboarding with email/password and social login.
 
 ## Tech Stack
 
@@ -44,6 +44,8 @@ Docker runs PostgreSQL and the API. The API runs `prisma db push` on startup so 
 ## Main Flows
 
 - **Create habit:** mobile app collects optional emoji, name, color, streak goal, completions per day, and reminder count/times, then calls `POST /habits`.
+- **Onboarding/auth:** users can sign up, log in, continue as guest, request a password reset, log out, delete their account, or authenticate with Google/Apple social identity tokens.
+- **Guest import:** after sign-up/login, users can import habits created on the same device as a guest or start fresh.
 - **Dashboard:** mobile app calls `GET /habits` with `deviceId`, `from`, and `to`, then renders `My Habits`.
 - **Toggle done/undone:** tapping today’s indicator calls `POST /habits/:habitId/toggle`.
 - **Edit/archive/delete:** edit screen calls `PATCH`, archive, or delete endpoints.
@@ -65,3 +67,18 @@ More details:
 
 - Backend README: `apps/api/README.md`
 - Frontend README: `apps/mobile/README.md`
+
+## Auth Environment
+
+- API: set `JWT_SECRET` for signed access tokens and `DATABASE_URL` for Prisma/PostgreSQL.
+- Mobile: set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`, and/or `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` to enable Google sign-in.
+- Password reset is wired for the MVP and logs reset tokens in the API process; replace that with SMTP/provider delivery before production.
+
+Example `apps/mobile/.env.local`:
+
+```sh
+EXPO_PUBLIC_API_URL=http://YOUR_LOCAL_IP:3001
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID=your-ios-google-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=your-android-google-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-web-google-client-id.apps.googleusercontent.com
+```

@@ -15,6 +15,7 @@ export interface ReminderSettings {
 export interface HabitProps {
   id: string;
   deviceId: string;
+  userId?: string | null;
   name: string;
   emoji: string;
   color: string;
